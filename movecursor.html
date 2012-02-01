@@ -1,0 +1,363 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+#gameSpaceId{
+	width:500px;
+	height:300px;
+	border:1px solid gray;
+	position:relative;
+	background-color:#EAEAEA;
+	margin-right:20px;
+}
+
+table{
+	border-left:solid 1px gray;
+	border-bottom:solid 1px gray;
+	border-spacing: 0px;
+	float:clear;
+}
+
+table th{
+	border-top:solid 1px gray;
+	border-right:solid 1px gray;
+	border-bottom:0px;
+	border-left:0px;
+	color:#FFFFFF;
+	background-color:#DB00D3;
+}
+
+table td{
+	border-top:solid 1px gray;
+	border-right:solid 1px gray;
+	border-bottom:0px;
+	border-left:0px;
+	color:#383838;
+	font-weight:bold;
+}
+
+</style>
+<title>move cursor</title>
+</head>
+<body>
+<h2 style="color:#646566">move cursor</h2>
+
+<div style="float:left;">
+	<div id="gameSpaceId">
+		<img id="cursorimgId" src="arrow036_06.png" style="position:absolute;z-index:10;"/>
+		<img id="cursorimgVId" src="arrow036_01.png" style="position:absolute;z-index:10;"/>
+		<img id="cursorimgV2Id" src="arrow036_02.png" style="position:absolute;z-index:10;"/>
+		<img id="cursorimgV3Id" src="arrow036_03.png" style="position:absolute;z-index:10;"/>
+		<img id="cursorimgV4Id" src="arrow036_04.png" style="position:absolute;z-index:10;"/>
+	</div>
+
+
+	<div align="right" style="width:500px;">
+		<button id="startbtn" onclick="startfunc();">START</button>
+		<button id="stopbtn" onclick="stopfunc();">STOP</button>
+	</div>
+</div>
+
+<table id="scoretblId">
+<thead>
+<tr>
+	<th width="80px">Rank</th>
+	<th width="80px">Time</th>
+</tr>
+</thead>
+<tbody>
+
+</tbody>
+</table>
+
+<script type="text/javascript">
+
+// ユーザカーソル
+var cursor = document.getElementById("cursorimgId");
+//　障害カーソル処理用timer
+var timer;
+var timer2;
+var timer3;
+var timer4;
+
+var speed;
+var speed2;
+var speed3;
+var speed4;
+
+var chk;
+
+var divobj = document.getElementById("gameSpaceId");
+
+var startTime;	// 開始時間
+var gameTime;	// 所要時間
+
+var scoreArray = new Array();	// スコア保持用配列
+
+window.onload = function(){
+	movestartpositon();
+}
+
+function movecursor(curId,speedval,timerId){
+	var cur = document.getElementById(curId);
+
+	// カーソルの上下で切り分ける
+	if(timerId % 2 == 1){
+		cur.style.top = (eval(cur.style.top.replace("px","")) -1)+"px";
+	}else if(timerId % 2 == 0){
+		cur.style.top = (eval(cur.style.top.replace("px","")) +1)+"px";
+	}
+
+	if((!timer && timerId == 1) || (!timer2 && timerId == 2) || (!timer3 && timerId == 3) || (!timer4 && timerId == 4) ||
+		eval(cur.style.top.replace("px","")) <= 0 || 
+		(cur.offsetHeight + eval(cur.style.top.replace("px","")) +2) >= divobj.offsetHeight ){
+		if(timerId % 2 == 1){
+			cur.style.top = (divobj.offsetHeight - cur.offsetHeight -2) +"px";
+		}else if(timerId % 2 == 0){
+			cur.style.top = "0px";
+		}
+		
+		var tmpval = 5 + Math.floor(Math.random() * 20);
+		switch(timerId){
+			case 1:
+				speed = tmpval;
+				break;
+			case 2:
+				speed2 = tmpval;
+				break;
+			case 3:
+				speed3 = tmpval;
+				break;
+			case 4:
+				speed4 = tmpval;
+				break;
+			defalut:
+				break;
+		}
+	}
+
+	chk = overlapChk("cursorimgId",curId);
+}
+
+function judge(){
+	if(chk != 0){
+		alert("GAME OVER!");
+		stopfunc();
+		return false;
+	}
+	return true;
+}
+
+function callfunc1(){
+	movecursor('cursorimgVId',speed,1);
+	
+	if(judge()){
+		timer = setTimeout(callfunc1,speed);
+	}
+}
+function callfunc2(){
+	movecursor('cursorimgV2Id',speed2,2);
+
+	if(judge()){
+		timer2 = setTimeout(callfunc2,speed2);
+	}
+}
+function callfunc3(){
+	movecursor('cursorimgV3Id',speed3,3);
+
+	if(judge()){
+		timer3 = setTimeout(callfunc3,speed3);
+	}
+}
+function callfunc4(){
+	movecursor('cursorimgV4Id',speed4,4);
+
+	if(judge()){
+		timer4 = setTimeout(callfunc4,speed4);
+	}
+}
+
+var Rectangle = function(left,top,width,height){
+	this.left = left;
+	this.top = top;
+	this.right = eval(left) + eval(width);
+	this.bottom = eval(top) + eval(height);
+}
+function overlapChk(mcur,vcur){
+	var mcurobj = document.getElementById(mcur);
+	var vcurobj = document.getElementById(vcur);
+	var mcurRect = new Rectangle(mcurobj.style.left.replace("px",""),mcurobj.style.top.replace("px",""),mcurobj.offsetWidth,mcurobj.offsetHeight);
+	var vcurRect = new Rectangle(vcurobj.style.left.replace("px",""),vcurobj.style.top.replace("px",""),vcurobj.offsetWidth,vcurobj.offsetHeight);
+
+	if(
+		mcurRect.left > vcurRect.right ||
+		mcurRect.top > vcurRect.bottom ||
+		mcurRect.bottom < vcurRect.top ||
+		mcurRect.right < vcurRect.left
+	){
+		return 0;	// 重なりなし
+	}else if(
+		mcurRect.left == vcurRect.right ||
+		mcurRect.top == vcurRect.bottom ||
+		mcurRect.bottom == vcurRect.top ||
+		mcurRect.right == vcurRect.left
+	){
+		return 1;	// 外接状態
+	}else{
+		return 2;	// 重なりあり
+	}
+}
+
+function startfunc(){
+	if(!document.onkeydown){
+		// カーソルキー押下時のイベントハンドラ設定
+		document.onkeydown = function(e){
+			
+			if(!e) e = window.event;
+
+			var kcode = e.keyCode;
+			if(kcode == 37){
+				// alert("左へ移動");
+				if(0 <  eval(cursor.style.left.replace("px",""))){
+					cursor.style.left = (eval(cursor.style.left.replace("px","")) -4)+"px";
+				}else{
+					gameTime = getTime();
+					alert("Clear!  タイム : " + gameTime + "秒");
+					stopfunc();
+					refreshScoreBoard();
+				}
+			}else if(kcode == 38){
+				// alert("上へ移動");
+				if(0 < eval(cursor.style.top.replace("px","")))
+					cursor.style.top = (eval(cursor.style.top.replace("px","")) -4)+"px";
+			}else if(kcode == 39){
+				// alert("右へ移動");
+				if(divobj.offsetWidth > (cursor.offsetWidth + eval(cursor.style.left.replace("px",""))) +2)
+					cursor.style.left = (eval(cursor.style.left.replace("px","")) +4)+"px";
+			}else if(kcode == 40){
+				// alert("下へ移動");
+				if(divobj.offsetHeight > (cursor.offsetHeight + eval(cursor.style.top.replace("px",""))) +2)
+					cursor.style.top = (eval(cursor.style.top.replace("px","")) +4)+"px";
+			}
+		}
+	}
+
+	if(!timer){
+		// 上下に移動するカーソル起動
+		callfunc1();
+		callfunc2();
+		callfunc3();
+		callfunc4();
+	}
+
+	startTimer();	// 継続時間測定開始
+}
+
+function stopfunc(){
+	if(document.onkeydown){
+		document.onkeydown = null;
+	}
+
+	if(timer){
+		// タイマーを解除する
+		clearTimeout(timer);
+		timer = "";
+		// タイマー2を解除する
+		clearTimeout(timer2);
+		timer2 = "";
+		// タイマー3を解除する
+		clearTimeout(timer3);
+		timer3 = "";
+		// タイマー4を解除する
+		clearTimeout(timer4);
+		timer4 = "";
+		// ユーザカーソルを初期位置に移動
+		movestartpositon();
+	}
+}
+
+function movestartpositon(){
+	var obj = document.getElementById("cursorimgId");
+	obj.style.left = divobj.offsetWidth - obj.offsetWidth -2 +  "px";
+	obj.style.top = "130px";
+
+	var vobj = document.getElementById("cursorimgVId");
+	vobj.style.left = "370px";
+	vobj.style.top = divobj.offsetHeight - vobj.offsetHeight -2 +  "px";
+
+	var vobj2 = document.getElementById("cursorimgV2Id");
+	vobj2.style.left = "270px";
+	vobj2.style.top = "0px";
+
+	var vobj3 = document.getElementById("cursorimgV3Id");
+	vobj3.style.left = "170px";
+	vobj3.style.top = divobj.offsetHeight - vobj.offsetHeight -2 +  "px";
+
+	var vobj4 = document.getElementById("cursorimgV4Id");
+	vobj4.style.left = "70px";
+	vobj4.style.top = "0px";
+}
+
+// 経過時間計測処理
+function startTimer(){
+	startTime = new Date();
+}
+
+function getTime(){
+	var currentTime = new Date();
+	return (currentTime - startTime) / 1000;	// 経過秒取得
+}
+
+// スコアボードのリフレッシュ処理
+function refreshScoreBoard(){
+	if(!scoreArray[0]){
+	// 配列の先頭に値がない場合は先頭にスコアを設定
+		scoreArray[0] = gameTime;
+	}else if(scoreArray.length < 10){
+	// 配列の長さが10以下の場合は単純に配列にスコアを追加
+		scoreArray.push(gameTime);
+		scoreArray.sort();
+	}else{
+	// 配列の長さが10になっている場合、今回スコアと最下位のスコアと比較し、高スコアを最下位の値として設定する
+		if(scoreArray[9] > gameTime){
+			scoreArray[9] = gameTime;
+			// 配列ソートを行い順位を再設定する
+			scoreArray.sort();
+		}
+	}
+
+	// スコアボードのtdタグを再作成して設定する
+	// scoretblId テーブルID
+	var elem = document.getElementById("scoretblId").getElementsByTagName( "tbody").item( 0 );
+
+	if(!document.body.addeventlistener){
+		for (var i =elem.childNodes.length-1; i>=0; i--) {
+			elem.removeChild(elem.childNodes[i]);
+		}
+	}else{
+		elem.innerHTML = "";
+	}
+
+	for(var i=0;i<scoreArray.length;i++){
+
+		var trelem = document.createElement('tr');
+		var td1elem = document.createElement('td');
+		var td2elem = document.createElement('td');
+
+
+		if(document.body.attachEvent){
+			td1elem.innerHTML = i+1;
+			td2elem.innerHTML = scoreArray[i];
+		}else{
+			td1elem.textContent = i+1;
+			td2elem.textContent = scoreArray[i];
+		}
+		trelem.appendChild(td1elem);
+		trelem.appendChild(td2elem);
+		elem.appendChild(trelem);
+
+	}
+}
+</script>
+</body>
+</html>
